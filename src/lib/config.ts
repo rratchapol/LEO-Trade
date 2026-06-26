@@ -8,6 +8,7 @@ export type AppConfig = {
   biasTimeframe: string;
   riskRewardTarget: number;
   slBufferPips: number;
+  reportTimezone: string;
 };
 
 export function getConfig(): AppConfig {
@@ -20,7 +21,8 @@ export function getConfig(): AppConfig {
     entryTimeframe: process.env.ENTRY_TIMEFRAME ?? "5min",
     biasTimeframe: process.env.BIAS_TIMEFRAME ?? "15min",
     riskRewardTarget: Number(process.env.RISK_REWARD_TARGET ?? 2),
-    slBufferPips: Number(process.env.SL_BUFFER_PIPS ?? 1)
+    slBufferPips: Number(process.env.SL_BUFFER_PIPS ?? 1),
+    reportTimezone: process.env.REPORT_TIMEZONE ?? "Asia/Bangkok"
   };
 }
 
@@ -30,7 +32,9 @@ export function requireSecret(request: Request, configuredSecret: string): Respo
   }
 
   const url = new URL(request.url);
-  const providedSecret = url.searchParams.get("secret") ?? request.headers.get("x-scan-secret");
+  const authHeader = request.headers.get("authorization");
+  const bearerSecret = authHeader?.startsWith("Bearer ") ? authHeader.slice("Bearer ".length) : null;
+  const providedSecret = url.searchParams.get("secret") ?? request.headers.get("x-scan-secret") ?? bearerSecret;
   if (providedSecret !== configuredSecret) {
     return Response.json({ error: "Unauthorized" }, { status: 401 });
   }

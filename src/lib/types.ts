@@ -28,3 +28,26 @@ export type TradingSignal = {
   candleTime: string;
   notes: string[];
 };
+
+export type ChecklistItem = {
+  name: string;
+  passed: boolean;
+  detail: string;
+};
+
+export type MarketReport = {
+  symbol: string;
+  generatedAt: string;
+  timezone: string;
+  trend: "uptrend" | "downtrend" | "sideway";
+  trendLabel: string;
+  bias: MarketBias;
+  currentPrice: number;
+  rangeHigh: number;
+  rangeLow: number;
+  rangePips: number;
+  checklistPassed: number;
+  checklistTotal: number;
+  checklist: ChecklistItem[];
+  notes: string[];
+};

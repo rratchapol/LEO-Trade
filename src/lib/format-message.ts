@@ -1,4 +1,4 @@
-import type { TradingSignal } from "./types";
+import type { MarketReport, TradingSignal } from "./types";
 
 export function formatSignalMessage(signal: TradingSignal): string {
   const side = signal.direction.toUpperCase();
@@ -19,5 +19,24 @@ export function formatSignalMessage(signal: TradingSignal): string {
     ...signal.notes.map((note) => `- ${note}`),
     "",
     "รอแท่งปิดยืนยันและคุม risk ก่อนเข้าเสมอ"
+  ].join("\n");
+}
+
+export function formatMarketReportMessage(report: MarketReport): string {
+  return [
+    `${report.symbol} Market Report`,
+    `เวลา: ${report.generatedAt} (${report.timezone})`,
+    "",
+    `Trend: ${report.trendLabel}`,
+    `Bias: ${report.bias.direction.toUpperCase()} - ${report.bias.reason}`,
+    `Current: ${report.currentPrice}`,
+    `Range: ${report.rangeLow} - ${report.rangeHigh} (${report.rangePips} pips)`,
+    "",
+    `Checklist: ${report.checklistPassed}/${report.checklistTotal}`,
+    ...report.checklist.map((item) => `${item.passed ? "ผ่าน" : "ยังไม่ผ่าน"} - ${item.name}: ${item.detail}`),
+    "",
+    ...report.notes,
+    "",
+    "สูตรอ่าน: Bias -> Zone -> Trigger -> Risk -> Execute"
   ].join("\n");
 }

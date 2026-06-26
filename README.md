@@ -18,6 +18,7 @@ External Cron
 GET /api/health
 GET /api/test-line?secret=YOUR_SCAN_SECRET
 GET /api/scan?secret=YOUR_SCAN_SECRET
+GET /api/report?secret=YOUR_SCAN_SECRET
 ```
 
 ## Environment Variables
@@ -34,6 +35,8 @@ ENTRY_TIMEFRAME=5min
 BIAS_TIMEFRAME=15min
 RISK_REWARD_TARGET=2
 SL_BUFFER_PIPS=1
+REPORT_TIMEZONE=Asia/Bangkok
+CRON_SECRET=
 ```
 
 ห้าม commit token จริงขึ้น GitHub
@@ -78,11 +81,47 @@ http://localhost:3000/api/test-line?secret=YOUR_SCAN_SECRET
 
 ## Cron
 
+### Signal Scan
+
 ใช้ cron-job.org, UptimeRobot หรือบริการ cron อื่นเรียกทุก 5 นาที:
 
 ```text
 https://your-vercel-app.vercel.app/api/scan?secret=YOUR_SCAN_SECRET
 ```
+
+### Scheduled Market Report
+
+ระบบมี `vercel.json` สำหรับส่ง market report อัตโนมัติ 4 เวลา:
+
+```text
+09:00, 12:00, 18:00, 22:00 Asia/Bangkok
+```
+
+ใน `vercel.json` จะใช้ UTC schedule:
+
+```text
+0 2,5,11,15 * * *
+```
+
+Vercel Cron จะเรียก:
+
+```text
+/api/report
+```
+
+ถ้าตั้ง `CRON_SECRET` ใน Vercel ระบบจะรับ header `Authorization: Bearer ...` จาก Vercel Cron ได้ หรือจะทดสอบเองด้วย:
+
+```text
+https://your-vercel-app.vercel.app/api/report?secret=YOUR_SCAN_SECRET
+```
+
+Report จะส่ง LINE พร้อม:
+
+- Trend ตอนนี้: ขาขึ้น / ขาลง / sideway
+- กรอบราคาช่วงล่าสุด
+- ราคา current
+- Checklist ผ่านกี่ข้อจาก 5 ข้อ
+- รายละเอียดว่า Bias, Zone, Trigger, Risk/RR, Execute ผ่านหรือยัง
 
 ## Notes
 
