@@ -91,25 +91,21 @@ https://your-vercel-app.vercel.app/api/scan?secret=YOUR_SCAN_SECRET
 
 ### Scheduled Market Report
 
-ระบบมี `vercel.json` สำหรับส่ง market report อัตโนมัติ 4 เวลา:
+สำหรับ Vercel Hobby/Free plan ให้ใช้ external cron เช่น cron-job.org หรือ UptimeRobot แทน Vercel Cron เพราะ Vercel Hobby จำกัดความถี่ cron expression
+
+ตั้ง external cron ให้เรียก `report` 4 เวลา:
 
 ```text
 09:00, 12:00, 18:00, 22:00 Asia/Bangkok
 ```
 
-ใน `vercel.json` จะใช้ UTC schedule:
+URL ที่ต้องเรียก:
 
 ```text
-0 2,5,11,15 * * *
+https://your-vercel-app.vercel.app/api/report?secret=YOUR_SCAN_SECRET
 ```
 
-Vercel Cron จะเรียก:
-
-```text
-/api/report
-```
-
-ถ้าตั้ง `CRON_SECRET` ใน Vercel ระบบจะรับ header `Authorization: Bearer ...` จาก Vercel Cron ได้ หรือจะทดสอบเองด้วย:
+ทดสอบเองด้วย:
 
 ```text
 https://your-vercel-app.vercel.app/api/report?secret=YOUR_SCAN_SECRET
