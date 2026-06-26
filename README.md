@@ -49,6 +49,14 @@ SL_BUFFER_PIPS=1
 - SL วางนอก wick หรือโซน FVG พร้อม buffer
 - TP1 = 1R, TP2 = ค่า `RISK_REWARD_TARGET`
 
+## Manual Trading Checklist
+
+อ่าน checklist สำหรับใช้ตัดสินใจเข้าเทรดเองได้ที่:
+
+```text
+TRADING_CHECKLIST.md
+```
+
 ## Local Development
 
 ```bash
