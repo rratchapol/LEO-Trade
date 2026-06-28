@@ -1,11 +1,22 @@
 import type { Candle, Direction } from "./types";
 
 export function pipSize(symbol: string): number {
-  return symbol.includes("JPY") ? 0.01 : 0.0001;
+  const normalized = symbol.replace(/[^A-Z]/gi, "").toUpperCase();
+  const knownForexQuotes = ["USD", "EUR", "JPY", "GBP", "AUD", "NZD", "CAD", "CHF"];
+  const base = normalized.slice(0, 3);
+  const quote = normalized.slice(3, 6);
+  const looksLikeForex = normalized.length === 6 && knownForexQuotes.includes(base) && knownForexQuotes.includes(quote);
+
+  if (looksLikeForex) {
+    return quote === "JPY" ? 0.01 : 0.0001;
+  }
+
+  return 0.01;
 }
 
 export function roundPrice(price: number, symbol: string): number {
-  const digits = symbol.includes("JPY") ? 3 : 5;
+  const pip = pipSize(symbol);
+  const digits = pip >= 0.01 ? 2 : symbol.includes("JPY") ? 3 : 5;
   return Number(price.toFixed(digits));
 }
 

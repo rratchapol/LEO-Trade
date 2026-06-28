@@ -20,7 +20,7 @@ try {
     config
   });
 
-  printSummary(result);
+  printSummary(result, config.symbol);
 } catch (error) {
   console.error(error instanceof Error ? error.message : error);
   console.error("");
@@ -32,9 +32,9 @@ try {
   process.exit(1);
 }
 
-function printSummary(result: ReturnType<typeof runBacktest>) {
+function printSummary(result: ReturnType<typeof runBacktest>, symbol: string) {
   const { stats, trades } = result;
-  console.log("EUR/USD Backtest");
+  console.log(`${symbol} Backtest`);
   console.log("================");
   console.log(`Trades: ${stats.trades}`);
   console.log(`Wins: ${stats.wins}`);

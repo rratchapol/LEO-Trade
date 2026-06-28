@@ -6,22 +6,24 @@ export function readCandlesFromCsv(filePath: string): Candle[] {
   if (!raw) return [];
 
   const [headerLine, ...lines] = raw.split(/\r?\n/);
-  const headers = splitCsvLine(headerLine).map((header) => normalizeHeader(header));
-  const timeIndex = findIndex(headers, ["time", "datetime", "date", "timestamp"]);
+  const delimiter = headerLine.includes("\t") ? "\t" : ",";
+  const headers = splitCsvLine(headerLine, delimiter).map((header) => normalizeHeader(header));
+  const timeIndex = findIndex(headers, ["time", "datetime", "date", "timestamp", "etcutc"]);
+  const dateIndex = findIndex(headers, ["date"]);
   const openIndex = findIndex(headers, ["open"]);
   const highIndex = findIndex(headers, ["high"]);
   const lowIndex = findIndex(headers, ["low"]);
   const closeIndex = findIndex(headers, ["close"]);
 
-  if ([timeIndex, openIndex, highIndex, lowIndex, closeIndex].some((index) => index === -1)) {
-    throw new Error(`CSV must include time/open/high/low/close columns: ${filePath}`);
+  if ([openIndex, highIndex, lowIndex, closeIndex].some((index) => index === -1) || (timeIndex === -1 && dateIndex === -1)) {
+    throw new Error(`CSV must include time or date+time, plus open/high/low/close columns: ${filePath}`);
   }
 
   return lines
-    .map((line) => splitCsvLine(line))
+    .map((line) => splitCsvLine(line, delimiter))
     .filter((columns) => columns.length >= headers.length)
     .map((columns) => ({
-      time: columns[timeIndex],
+      time: buildTime(columns, timeIndex, dateIndex, headers),
       open: Number(columns[openIndex]),
       high: Number(columns[highIndex]),
       low: Number(columns[lowIndex]),
@@ -32,14 +34,26 @@ export function readCandlesFromCsv(filePath: string): Candle[] {
 }
 
 function normalizeHeader(header: string): string {
-  return header.trim().toLowerCase().replace(/[^a-z]/g, "");
+  return header.trim().toLowerCase().replace(/[<>]/g, "").replace(/[^a-z]/g, "");
 }
 
 function findIndex(headers: string[], aliases: string[]): number {
   return headers.findIndex((header) => aliases.includes(header));
 }
 
-function splitCsvLine(line: string): string[] {
+function buildTime(columns: string[], timeIndex: number, dateIndex: number, headers: string[]): string {
+  if (dateIndex !== -1 && timeIndex !== -1 && dateIndex !== timeIndex && headers[timeIndex] === "time") {
+    return `${columns[dateIndex].replaceAll(".", "-")}T${columns[timeIndex]}`;
+  }
+
+  return columns[timeIndex !== -1 ? timeIndex : dateIndex].replaceAll(".", "-");
+}
+
+function splitCsvLine(line: string, delimiter: "," | "\t"): string[] {
+  if (delimiter === "\t") {
+    return line.split("\t").map((column) => column.trim());
+  }
+
   const columns: string[] = [];
   let current = "";
   let inQuotes = false;
