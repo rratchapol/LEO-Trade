@@ -50,6 +50,18 @@ npm run backtest
 npm run backtest -- data/EURUSD_5min.csv data/EURUSD_15min.csv
 ```
 
+ถ้าจะรัน BCH จากไฟล์ MT5 ที่วางไว้ใน `data/`:
+
+```bash
+npm run backtest:bch
+```
+
+หรือรัน EURUSD ชัด ๆ:
+
+```bash
+npm run backtest:eurusd
+```
+
 ## 4. วิธีอ่านผล
 
 ผลลัพธ์จะมี:

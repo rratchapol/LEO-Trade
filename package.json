@@ -8,7 +8,9 @@
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
-    "backtest": "tsx scripts/backtest.ts"
+    "backtest": "tsx scripts/backtest.ts",
+    "backtest:bch": "tsx scripts/backtest.ts --symbol=BCH/USD --sl-buffer-pips=5 data/BCHUSDm_M5.csv data/BCHUSDm_M15.csv",
+    "backtest:eurusd": "tsx scripts/backtest.ts --symbol=EUR/USD --sl-buffer-pips=1 data/EURUSD_5min.csv data/EURUSD_15min.csv"
   },
   "dependencies": {
     "next": "16.2.9",

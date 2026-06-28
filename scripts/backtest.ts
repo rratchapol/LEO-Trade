@@ -4,11 +4,15 @@ import { readCandlesFromCsv } from "../src/lib/csv-candles";
 import { runBacktest } from "../src/lib/backtest-engine";
 
 const root = process.cwd();
-const entryCsv = process.argv[2] ?? path.join(root, "data", "EURUSD_5min.csv");
-const biasCsv = process.argv[3] ?? path.join(root, "data", "EURUSD_15min.csv");
+const options = parseArgs(process.argv.slice(2));
+const entryCsv = options.files[0] ?? path.join(root, "data", "EURUSD_5min.csv");
+const biasCsv = options.files[1] ?? path.join(root, "data", "EURUSD_15min.csv");
 
 try {
   const config = getConfig();
+  if (options.symbol) config.symbol = options.symbol;
+  if (options.slBufferPips !== undefined) config.slBufferPips = options.slBufferPips;
+
   const entryCandles = readCandlesFromCsv(entryCsv);
   const biasCandles = readCandlesFromCsv(biasCsv);
 
@@ -30,6 +34,24 @@ try {
   console.error("");
   console.error("Required columns: time, open, high, low, close");
   process.exit(1);
+}
+
+function parseArgs(args: string[]): { files: string[]; symbol?: string; slBufferPips?: number } {
+  const files: string[] = [];
+  let symbol: string | undefined;
+  let slBufferPips: number | undefined;
+
+  for (const arg of args) {
+    if (arg.startsWith("--symbol=")) {
+      symbol = arg.slice("--symbol=".length);
+    } else if (arg.startsWith("--sl-buffer-pips=")) {
+      slBufferPips = Number(arg.slice("--sl-buffer-pips=".length));
+    } else {
+      files.push(arg);
+    }
+  }
+
+  return { files, symbol, slBufferPips };
 }
 
 function printSummary(result: ReturnType<typeof runBacktest>, symbol: string) {
