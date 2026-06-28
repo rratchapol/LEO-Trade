@@ -60,6 +60,20 @@ CRON_SECRET=
 TRADING_CHECKLIST.md
 ```
 
+## Backtest
+
+อ่านวิธี backtest จาก CSV ได้ที่:
+
+```text
+BACKTEST.md
+```
+
+รัน:
+
+```bash
+npm run backtest
+```
+
 ## Local Development
 
 ```bash
