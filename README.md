@@ -74,6 +74,20 @@ BACKTEST.md
 npm run backtest
 ```
 
+ดูผลแยกตาม setup/direction/session:
+
+```bash
+npm run backtest:eurusd
+npm run backtest:bch
+```
+
+export trades เป็น CSV:
+
+```bash
+npm run backtest:eurusd:export
+npm run backtest:bch:export
+```
+
 ## Local Development
 
 ```bash

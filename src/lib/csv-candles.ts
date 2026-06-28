@@ -8,7 +8,7 @@ export function readCandlesFromCsv(filePath: string): Candle[] {
   const [headerLine, ...lines] = raw.split(/\r?\n/);
   const delimiter = headerLine.includes("\t") ? "\t" : ",";
   const headers = splitCsvLine(headerLine, delimiter).map((header) => normalizeHeader(header));
-  const timeIndex = findIndex(headers, ["time", "datetime", "date", "timestamp", "etcutc"]);
+  const timeIndex = findIndex(headers, ["time", "datetime", "timestamp", "etcutc"]);
   const dateIndex = findIndex(headers, ["date"]);
   const openIndex = findIndex(headers, ["open"]);
   const highIndex = findIndex(headers, ["high"]);

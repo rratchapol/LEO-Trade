@@ -9,20 +9,26 @@ export type BacktestTrade = {
   result: "win" | "loss" | "timeout";
   rMultiple: number;
   barsHeld: number;
+  session: "Asia" | "London" | "NewYork" | "OffHours";
+};
+
+export type BacktestStats = {
+  trades: number;
+  wins: number;
+  losses: number;
+  timeouts: number;
+  winRate: number;
+  netR: number;
+  averageR: number;
+  maxLosingStreak: number;
 };
 
 export type BacktestResult = {
   trades: BacktestTrade[];
-  stats: {
-    trades: number;
-    wins: number;
-    losses: number;
-    timeouts: number;
-    winRate: number;
-    netR: number;
-    averageR: number;
-    maxLosingStreak: number;
-  };
+  stats: BacktestStats;
+  bySetup: Record<string, BacktestStats>;
+  byDirection: Record<string, BacktestStats>;
+  bySession: Record<string, BacktestStats>;
 };
 
 export function runBacktest(params: {
@@ -64,7 +70,10 @@ export function runBacktest(params: {
 
   return {
     trades,
-    stats: summarizeTrades(trades)
+    stats: summarizeTrades(trades),
+    bySetup: groupStats(trades, (trade) => trade.signal.setup),
+    byDirection: groupStats(trades, (trade) => trade.signal.direction),
+    bySession: groupStats(trades, (trade) => trade.session)
   };
 }
 
@@ -84,36 +93,36 @@ function simulateTrade(params: {
     const hitTarget = direction === "buy" ? candle.high >= signal.takeProfit2 : candle.low <= signal.takeProfit2;
 
     if (hitStop && hitTarget) {
-      return {
+      return withSession({
         signal,
         exitTime: candle.time,
         exitPrice: signal.stopLoss,
         result: "loss",
         rMultiple: -1,
         barsHeld: index + 1
-      };
+      });
     }
 
     if (hitTarget) {
-      return {
+      return withSession({
         signal,
         exitTime: candle.time,
         exitPrice: signal.takeProfit2,
         result: "win",
         rMultiple: signal.riskReward,
         barsHeld: index + 1
-      };
+      });
     }
 
     if (hitStop) {
-      return {
+      return withSession({
         signal,
         exitTime: candle.time,
         exitPrice: signal.stopLoss,
         result: "loss",
         rMultiple: -1,
         barsHeld: index + 1
-      };
+      });
     }
   }
 
@@ -121,17 +130,44 @@ function simulateTrade(params: {
   const exitPrice = last?.close ?? signal.entry;
   const signedMove = direction === "buy" ? exitPrice - signal.entry : signal.entry - exitPrice;
 
-  return {
+  return withSession({
     signal,
     exitTime: last?.time ?? signal.candleTime,
     exitPrice,
     result: "timeout",
     rMultiple: risk > 0 ? signedMove / risk : 0,
     barsHeld: candlesToCheck.length
+  });
+}
+
+function withSession(trade: Omit<BacktestTrade, "session">): BacktestTrade {
+  return {
+    ...trade,
+    session: classifySession(trade.signal.candleTime)
   };
 }
 
-function summarizeTrades(trades: BacktestTrade[]): BacktestResult["stats"] {
+function classifySession(time: string): BacktestTrade["session"] {
+  const hour = Number(time.slice(11, 13));
+  if (!Number.isFinite(hour)) return "OffHours";
+  if (hour >= 0 && hour < 7) return "Asia";
+  if (hour >= 7 && hour < 12) return "London";
+  if (hour >= 12 && hour < 21) return "NewYork";
+  return "OffHours";
+}
+
+function groupStats(trades: BacktestTrade[], keyFn: (trade: BacktestTrade) => string): Record<string, BacktestStats> {
+  const groups: Record<string, BacktestTrade[]> = {};
+  for (const trade of trades) {
+    const key = keyFn(trade);
+    groups[key] ??= [];
+    groups[key].push(trade);
+  }
+
+  return Object.fromEntries(Object.entries(groups).map(([key, value]) => [key, summarizeTrades(value)]));
+}
+
+function summarizeTrades(trades: BacktestTrade[]): BacktestStats {
   const wins = trades.filter((trade) => trade.result === "win").length;
   const losses = trades.filter((trade) => trade.result === "loss").length;
   const timeouts = trades.filter((trade) => trade.result === "timeout").length;

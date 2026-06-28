@@ -1,7 +1,7 @@
 import { detectFvg, hasStrongRejection, pipSize, recentHigh, recentLow, roundPrice } from "./indicators";
 import { detectMarketBias } from "./signal-engine";
 import type { AppConfig } from "./config";
-import type { Candle, ChecklistItem, Direction, MarketReport } from "./types";
+import type { Candle, ChecklistItem, Direction, MarketReport, SetupScore } from "./types";
 
 export function buildMarketReport(params: {
   symbol: string;
@@ -36,8 +36,9 @@ export function buildMarketReport(params: {
     config
   });
 
+  const setupScore = scoreChecklist(checklist);
   const checklistPassed = checklist.filter((item) => item.passed).length;
-  const notes = buildReportNotes(checklist, trend);
+  const notes = buildReportNotes(checklist, trend, setupScore);
 
   return {
     symbol,
@@ -53,8 +54,32 @@ export function buildMarketReport(params: {
     checklistPassed,
     checklistTotal: checklist.length,
     checklist,
+    setupScore,
     notes
   };
+}
+
+export function scoreChecklist(checklist: ChecklistItem[]): SetupScore {
+  const weights = new Map([
+    ["Risk/RR", 30],
+    ["Bias", 25],
+    ["Zone", 25],
+    ["Trigger", 20]
+  ]);
+  const breakdown = [...weights.entries()].map(([name, maxPoints]) => {
+    const item = checklist.find((check) => check.name === name);
+    return {
+      name,
+      points: item?.passed ? maxPoints : 0,
+      maxPoints
+    };
+  });
+  const score = breakdown.reduce((sum, item) => sum + item.points, 0);
+  const grade = score >= 90 ? "A+" : score >= 80 ? "A" : score >= 60 ? "B" : score >= 40 ? "C" : "Skip";
+  const executePassed = checklist.find((item) => item.name === "Execute")?.passed ?? false;
+  const action = executePassed && score >= 80 ? "trade" : score >= 60 ? "watch" : "skip";
+
+  return { score, grade, action, breakdown };
 }
 
 function buildChecklist(params: {
@@ -177,16 +202,21 @@ function estimateRiskRoom(params: {
   };
 }
 
-function buildReportNotes(checklist: ChecklistItem[], trend: MarketReport["trend"]): string[] {
+function buildReportNotes(checklist: ChecklistItem[], trend: MarketReport["trend"], setupScore: SetupScore): string[] {
   const execute = checklist.find((item) => item.name === "Execute");
   if (execute?.passed) {
-    return ["Checklist ครบพอให้เริ่มมองหา entry ตามแผน แต่ยังต้องดูแท่งปิดและคุม risk"];
+    return [
+      setupScore.action === "trade"
+        ? "Grade is trade-ready. Still confirm candle close and position size."
+        : "Execute passes, but score is not strong enough for full size."
+    ];
   }
 
   const missing = checklist.filter((item) => !item.passed && item.name !== "Execute").map((item) => item.name);
   return [
-    `ยังไม่ครบสำหรับเข้าเทรด ขาด: ${missing.join(", ") || "none"}`,
-    trend === "sideway" ? "ถ้าตลาด sideway ให้รอ sweep ขอบกรอบก่อน" : "รอราคาเข้า zone และรอ trigger ชัดก่อน"
+    `Not trade-ready. Missing: ${missing.join(", ") || "none"}`,
+    setupScore.action === "watch" ? "Watch mode: useful setup forming, wait for missing checklist." : "Skip mode: not enough edge yet.",
+    trend === "sideway" ? "Sideway market: wait for range-edge sweep." : "Trending market: wait for price to reach zone and print trigger."
   ];
 }
 

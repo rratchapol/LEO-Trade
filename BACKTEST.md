@@ -56,6 +56,20 @@ npm run backtest -- data/EURUSD_5min.csv data/EURUSD_15min.csv
 npm run backtest:bch
 ```
 
+ถ้าต้องการ export รายการ trade เป็น CSV:
+
+```bash
+npm run backtest:bch:export
+npm run backtest:eurusd:export
+```
+
+ไฟล์ผลลัพธ์จะอยู่ใน:
+
+```text
+data/backtest_BCHUSDm_trades.csv
+data/backtest_EURUSD_trades.csv
+```
+
 หรือรัน EURUSD ชัด ๆ:
 
 ```bash
@@ -75,6 +89,9 @@ Win rate
 Net R
 Average R
 Max losing streak
+By setup
+By direction
+By session
 ```
 
 ระบบจำลองแบบง่าย:

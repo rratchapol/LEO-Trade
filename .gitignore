@@ -9,3 +9,4 @@ yarn-error.log*
 pnpm-debug.log*
 tsconfig.tsbuildinfo
 doc.md
+data/*.csv

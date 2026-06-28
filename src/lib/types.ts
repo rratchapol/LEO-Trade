@@ -35,6 +35,19 @@ export type ChecklistItem = {
   detail: string;
 };
 
+export type SetupGrade = "A+" | "A" | "B" | "C" | "Skip";
+
+export type SetupScore = {
+  score: number;
+  grade: SetupGrade;
+  action: "trade" | "watch" | "skip";
+  breakdown: Array<{
+    name: string;
+    points: number;
+    maxPoints: number;
+  }>;
+};
+
 export type MarketReport = {
   symbol: string;
   generatedAt: string;
@@ -49,5 +62,6 @@ export type MarketReport = {
   checklistPassed: number;
   checklistTotal: number;
   checklist: ChecklistItem[];
+  setupScore: SetupScore;
   notes: string[];
 };

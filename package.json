@@ -10,6 +10,8 @@
     "typecheck": "tsc --noEmit",
     "backtest": "tsx scripts/backtest.ts",
     "backtest:bch": "tsx scripts/backtest.ts --symbol=BCH/USD --sl-buffer-pips=5 data/BCHUSDm_M5.csv data/BCHUSDm_M15.csv",
+    "backtest:bch:export": "tsx scripts/backtest.ts --symbol=BCH/USD --sl-buffer-pips=5 --export=data/backtest_BCHUSDm_trades.csv data/BCHUSDm_M5.csv data/BCHUSDm_M15.csv",
+    "backtest:eurusd:export": "tsx scripts/backtest.ts --symbol=EUR/USD --sl-buffer-pips=1 --export=data/backtest_EURUSD_trades.csv data/EURUSD_5min.csv data/EURUSD_15min.csv",
     "backtest:eurusd": "tsx scripts/backtest.ts --symbol=EUR/USD --sl-buffer-pips=1 data/EURUSD_5min.csv data/EURUSD_15min.csv"
   },
   "dependencies": {
